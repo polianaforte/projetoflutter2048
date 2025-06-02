@@ -73,7 +73,7 @@ class _Jogo2048HomePageState extends State<Jogo2048HomePage> {
           return Container(
             margin: const EdgeInsets.all(2),
             color: Colors.grey[300],
-            child: const Center(child: Text('1')), // apenas exemplo, pode ser dinâmico
+            child: const Center(child: Text('')), 
           );
         },
       ),
