@@ -28,6 +28,79 @@ class _Jogo2048HomePageState extends State<Jogo2048HomePage> {
   int gridSize = 4;
   int movimentos = 0;
   String status = '';
+  List<List<int>> grid = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _inicializarGrid();
+  }
+
+  void _inicializarGrid() {
+    grid = List.generate(gridSize, (_) => List.generate(gridSize, (_) => 0));
+    _adicionarNovoNumero();
+    _adicionarNovoNumero();
+  }
+
+  void _mudarNivel(int tamanho) {
+    setState(() {
+      gridSize = tamanho;
+      movimentos = 0;
+      status = '';
+      _inicializarGrid();
+    });
+  }
+
+  void _adicionarNovoNumero() {
+    final vazio = <Map<String, int>>[];
+
+    for (var i = 0; i < gridSize; i++) {
+      for (var j = 0; j < gridSize; j++) {
+        if (grid[i][j] == 0) {
+          vazio.add({'x': i, 'y': j});
+        }
+      }
+    }
+
+    if (vazio.isNotEmpty) {
+      final pos = vazio[DateTime.now().millisecondsSinceEpoch % vazio.length];
+      grid[pos['x']!][pos['y']!] = (DateTime.now().millisecondsSinceEpoch % 10 == 0) ? 4 : 2;
+    }
+  }
+
+  void _moverParaCima() {
+    setState(() {
+      for (int j = 0; j < gridSize; j++) {
+        List<int> coluna = [];
+
+        for (int i = 0; i < gridSize; i++) {
+          if (grid[i][j] != 0) {
+            coluna.add(grid[i][j]);
+          }
+        }
+
+        for (int i = 0; i < coluna.length - 1; i++) {
+          if (coluna[i] == coluna[i + 1]) {
+            coluna[i] *= 2;
+            coluna[i + 1] = 0;
+          }
+        }
+
+        coluna = coluna.where((v) => v != 0).toList();
+
+        while (coluna.length < gridSize) {
+          coluna.add(0);
+        }
+
+        for (int i = 0; i < gridSize; i++) {
+          grid[i][j] = coluna[i];
+        }
+      }
+
+      movimentos++;
+      _adicionarNovoNumero();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +143,22 @@ class _Jogo2048HomePageState extends State<Jogo2048HomePage> {
           crossAxisCount: gridSize,
         ),
         itemBuilder: (context, index) {
+          int x = index ~/ gridSize;
+          int y = index % gridSize;
+          int valor = grid[x][y];
+
           return Container(
             margin: const EdgeInsets.all(2),
-            color: Colors.grey[300],
-            child: const Center(child: Text('')), 
+            decoration: BoxDecoration(
+              color: valor == 0 ? Colors.grey[300] : Colors.orange[200],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                valor == 0 ? '' : '$valor',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
           );
         },
       ),
@@ -83,31 +168,20 @@ class _Jogo2048HomePageState extends State<Jogo2048HomePage> {
   Widget _buildControles() {
     return Column(
       children: [
-        IconButton(icon: const Icon(Icons.arrow_upward), onPressed: _mover),
+        IconButton(
+          icon: const Icon(Icons.arrow_upward),
+          onPressed: _moverParaCima,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(icon: const Icon(Icons.arrow_back), onPressed: _mover),
+            IconButton(icon: const Icon(Icons.arrow_back), onPressed: null),
             const SizedBox(width: 40),
-            IconButton(icon: const Icon(Icons.arrow_forward), onPressed: _mover),
+            IconButton(icon: const Icon(Icons.arrow_forward), onPressed: null),
           ],
         ),
-        IconButton(icon: const Icon(Icons.arrow_downward), onPressed: _mover),
+        IconButton(icon: const Icon(Icons.arrow_downward), onPressed: null),
       ],
     );
-  }
-
-  void _mudarNivel(int tamanho) {
-    setState(() {
-      gridSize = tamanho;
-      movimentos = 0;
-      status = '';
-    });
-  }
-
-  void _mover() {
-    setState(() {
-      movimentos++;
-    });
   }
 }
